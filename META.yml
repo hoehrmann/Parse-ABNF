@@ -1,0 +1,14 @@
+--- #YAML:1.0
+name:                Parse-ABNF
+version:             0.05
+abstract:            Parse IETF Augmented BNF (ABNF) grammars.
+license:             perl
+author:              
+    - Bjoern Hoehrmann <bjoern@hoehrmann.de>
+generated_by:        ExtUtils::MakeMaker version 6.42_01
+distribution_type:   module
+requires:     
+    Parse::RecDescent:             0
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.3.html
+    version: 1.3

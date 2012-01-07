@@ -1,0 +1,23 @@
+Revision history for Perl extension Parse::ABNF.
+
+0.05  Wed Jan 21 02:02:02 2009
+	- Updated POD to clarify the module's purpose, see
+	  https://rt.cpan.org/Ticket/Display.html?id=42587
+	- added eg/abnf2xlx.pl
+
+0.04  Mon Dec 29 23:23:23 2008
+	- Better error handling
+
+0.03  Mon Dec 29 03:03:03 2008
+	- Simplified empty line stripping
+	- fixed rulename production
+	- Cleaned up unfolding code
+
+0.02  Mon Dec 29 02:02:02 2008
+	- Added - to white space removal regex suggestion
+	- Added core rules access to the synopsis
+	- Fixed a bug in parsing %mAA.BB... strings
+	- Simplified parsing %mAA.BB... strings
+
+0.01  Thu Dec 25 01:16:29 2008
+	- original version; created by h2xs

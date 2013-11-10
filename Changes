@@ -1,5 +1,8 @@
 Revision history for Perl extension Parse::ABNF.
 
+0.06 November 2013
+  - Fixed bug in handling '=/' rules
+
 0.05  Wed Jan 21 02:02:02 2009
 	- Updated POD to clarify the module's purpose, see
 	  https://rt.cpan.org/Ticket/Display.html?id=42587

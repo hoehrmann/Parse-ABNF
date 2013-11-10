@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Parse::RecDescent;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 our $Grammar = q{
 
   {
@@ -37,7 +37,7 @@ our $Grammar = q{
     $return = Make(Rule => name => $item[1], value => $item[5]);
   }
 
-  rule: rulename c_wsp(s?) "=" alt_op c_wsp(s?) elements c_nl empty_line(s?) {
+  rule: rulename c_wsp(s?) "=/" c_wsp(s?) elements c_nl empty_line(s?) {
     $return = Make(Rule => name => $item[1], value => $item[5], combine => 'choice');
     
   }

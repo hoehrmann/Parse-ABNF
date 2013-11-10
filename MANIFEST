@@ -4,6 +4,7 @@ MANIFEST
 README
 t/01basic.t
 t/05rfc3987.t
+t/06alt.t
 t/98podsyn.t
 t/99podcov.t
 lib/Parse/ABNF.pm

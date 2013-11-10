@@ -14,7 +14,7 @@ WriteMakefile(
     LICENSE           => 'perl',
     'dist'            => {
       PREOP     => 'chmod 600 Makefile.PL',
-      TARFLAGS	=> '--group=cpan --owner=bjoern -cvf',
+      TARFLAGS	=> '--group=none --owner=bjoern --mode=a+rw -cvf',
     },
 
 );

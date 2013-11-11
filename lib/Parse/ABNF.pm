@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Parse::RecDescent;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 our $Grammar = q{
 
   {
@@ -218,7 +218,7 @@ Parse::ABNF - Parse IETF Augmented BNF (ABNF) grammars.
   use Parse::ABNF;
   my $parser = Parse::ABNF->new;
   my $rules = $parser->parse($grammar);
-  my $core = $Parser::ABNF::CoreRules;
+  my $core = $Parse::ABNF::CoreRules;
 
 =head1 DESCRIPTION
 
@@ -298,7 +298,7 @@ versions might throw an exception instead.
 
 The ABNF specification defines some Core Rules that are used without
 defining them locally in many ABNF grammars. You can access these rules
-as parsed by this module via C<$Parser::ABNF::CoreRules>.
+as parsed by this module via C<$Parse::ABNF::CoreRules>.
 
 =head1 CAVEATS
 

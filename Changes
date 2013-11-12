@@ -1,5 +1,8 @@
 Revision history for Perl extension Parse::ABNF.
 
+0.08 November 2013
+  - Addressed a strange and sudden test failure
+
 0.07 November 2013
   - Fixed a couple of typos
 

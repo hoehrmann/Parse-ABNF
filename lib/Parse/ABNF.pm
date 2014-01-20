@@ -1,10 +1,10 @@
 package Parse::ABNF;
-use 5.006;
+use 5.012;
 use strict;
 use warnings;
 use Parse::RecDescent;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 our $Grammar = q{
 
   {
@@ -165,7 +165,7 @@ our $Grammar = q{
 
 };
 
-my $CoreRulesGrammar = q{
+our $CoreRulesGrammar = q{
 
 ALPHA          =  %x41-5A / %x61-7A
 BIT            =  "0" / "1"
@@ -203,6 +203,150 @@ sub parse {
   my $string = shift;
   my $result = $self->{_p}->parse($string);
   return $result;
+}
+
+sub parse_to_grammar_formal {
+  my ($self, $string, %options) = @_;
+  my $result = $self->{_p}->parse($string);
+  
+  require Grammar::Formal;
+  my $g = Grammar::Formal->new;
+  
+  my @rules = map { _abnf2g($_, $g) } @$result;
+
+  ###################################################################
+  # Install all rules in the grammar
+  ###################################################################
+  for my $rule (@rules) {
+    if ($g->rules->{$rule->name}) {
+      my $old = $g->rules->{$rule->name};
+      my $new = Grammar::Formal::Rule->new(
+        name => $rule->name,
+        p => $g->Choice($old->p, $rule->p),
+      );
+      $g->set_rule($rule->name, $new);
+    } else {
+      $g->set_rule($rule->name, $rule);
+    }
+  }
+  
+  ###################################################################
+  # Add missing Core rules if requested
+  ###################################################################
+  if ($options{core}) {
+    my %referenced;
+    my @todo = values %{ $g->{rules} };
+    while (my $c = pop @todo) {
+      if ($c->isa('Grammar::Formal::Reference')) {
+        $referenced{$c->ref}++;
+      } elsif ($c->isa('Grammar::Formal::Unary')) {
+        push @todo, $c->p;
+      } elsif ($c->isa('Grammar::Formal::Binary')) {
+        push @todo, $c->p1, $c->p2;
+      }
+    }
+    
+    my $core = $self->parse_to_grammar_formal($CoreRulesGrammar);
+    for (grep { not $g->rules->{$_} } keys %referenced) {
+      $g->set_rule($_, $core->rules->{$_});
+    }
+  }
+  
+  return $g;
+}
+
+sub _abnf2g {
+  my ($p, $g, %options) = @_;
+  for ($p->{class}) {
+    when("Group") {
+      my @values = map { _abnf2g($_, $g, %options) } @{ $p->{value} };
+      my $group = $g->Empty;
+      while (@values) {
+        $group = $g->Group(pop(@values), $group);
+      }
+      return $group;
+    }
+    when("Choice") {
+      my @values = map { _abnf2g($_, $g, %options) } @{ $p->{value} };
+      my $choice = $g->NotAllowed;
+      while (@values) {
+        $choice = $g->Choice(pop(@values), $choice);
+      }
+      return $choice;
+    }
+    when("Repetition") {
+      if (defined $p->{max}) {
+        return Grammar::Formal::BoundRepetition->new(
+          min => $p->{min},
+          max => $p->{max},
+          p => _abnf2g($p->{value}, $g, %options),
+        );
+      } else {
+        return Grammar::Formal::SomeOrMore->new(
+          min => $p->{min},
+          p => _abnf2g($p->{value}, $g, %options),
+        );
+      }
+    }
+    when("Rule") {
+      return Grammar::Formal::Rule->new(
+        name => $p->{name},
+        p => _abnf2g($p->{value}, $g, %options),
+      );
+    }
+    when("Reference") {
+      return Grammar::Formal::Reference->new(
+        ref => $p->{name},
+      );
+    }
+    when("Literal") {
+      return Grammar::Formal::AsciiInsensitiveString->new(
+        value => $p->{value},
+      );
+    }
+    when("ProseValue") {
+      return Grammar::Formal::ProseValue->new(
+        value => $p->{value},
+      );
+    }
+    when("String") {
+      my @items;
+      for ($p->{type}) {
+        when("decimal") {
+          @items = map { $_ } @{ $p->{value} };
+        }
+        when("hex") {
+          @items = map { hex $_ } @{ $p->{value} };
+        }
+        default {
+          ...
+        }
+      }
+      my @values = map {
+        Grammar::Formal::Range->new(
+          min => $_,
+          max => $_,
+        )
+      } @items;
+      
+      my $group = $g->Empty;
+      while (@values) {
+        $group = $g->Group(pop(@values), $group);
+      }
+
+      return $group;
+    }
+    when("Range") {
+      return Grammar::Formal::Range->new(
+        min => hex $p->{min},
+        max => hex $p->{max},
+      ) if $p->{type} eq 'hex';
+      die;
+    }
+    default {
+      ...
+    }
+  }
 }
 
 1;
@@ -287,6 +431,27 @@ is parsed into
 
 Until this module matures, this format is subject to change. Contact the
 author if you would like to depend on this module.
+
+=head1 METHODS
+
+=over
+
+=item new
+
+Creates a new C<Parse::ABNF> object.
+
+=item parse($string)
+
+Parses a string into a structure as described above.
+
+=item parse_to_grammar_formal($string, %options)
+
+When the L<Grammar::Formal> module is available, this function will parse
+C<$string> into a new Grammar::Formal object. To obtain the ABNF Core rules
+apply it to the string C<$Parse::ABNF::CoreRulesGrammar>. Alternatively,
+pass C<core> as option and the method will do it for you.
+
+=back
 
 =head1 ERROR HANDLING
 

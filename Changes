@@ -1,5 +1,8 @@
 Revision history for Perl extension Parse::ABNF.
 
+0.09 January 2014
+  - Add conversion to Grammar::Formal object model
+
 0.08 November 2013
   - Addressed a strange and sudden test failure
 

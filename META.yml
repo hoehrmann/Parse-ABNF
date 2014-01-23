@@ -16,4 +16,4 @@ no_index:
     - inc
 resources:
   repository: https://github.com/hoehrmann/Parse-ABNF.git
-version: 0.09
+version: 0.10

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Parse::RecDescent;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 our $Grammar = q{
 
   {
@@ -246,9 +246,12 @@ sub parse_to_grammar_formal {
       }
     }
     
-    my $core = $self->parse_to_grammar_formal($CoreRulesGrammar);
-    for (grep { not $g->rules->{$_} } keys %referenced) {
-      $g->set_rule($_, $core->rules->{$_});
+    my @core_rules = map { _abnf2g($_, $g) } @$CoreRules;
+
+    for my $rule (@core_rules) {
+      next if $g->rules->{$rule->name};
+      next unless $referenced{$rule->name};
+      $g->set_rule($rule->name, $rule);
     }
   }
   

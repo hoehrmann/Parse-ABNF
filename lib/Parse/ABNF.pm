@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Parse::RecDescent;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 our $Grammar = q{
 
   {
@@ -261,7 +261,7 @@ sub parse_to_grammar_formal {
 sub _abnf2g {
   my ($p, $g, %options) = @_;
   for ($p->{class}) {
-    when("Group") {
+    if ($_ eq "Group") {
       my @values = map { _abnf2g($_, $g, %options) } @{ $p->{value} };
       my $group = $g->Empty;
       while (@values) {
@@ -269,7 +269,7 @@ sub _abnf2g {
       }
       return $group;
     }
-    when("Choice") {
+    elsif ($_ eq "Choice") {
       my @values = map { _abnf2g($_, $g, %options) } @{ $p->{value} };
       my $choice = $g->NotAllowed;
       while (@values) {
@@ -277,7 +277,7 @@ sub _abnf2g {
       }
       return $choice;
     }
-    when("Repetition") {
+    elsif ($_ eq "Repetition") {
       if (defined $p->{max}) {
         return Grammar::Formal::BoundRepetition->new(
           min => $p->{min},
@@ -291,37 +291,37 @@ sub _abnf2g {
         );
       }
     }
-    when("Rule") {
+    elsif ($_ eq "Rule") {
       return Grammar::Formal::Rule->new(
         name => $p->{name},
         p => _abnf2g($p->{value}, $g, %options),
       );
     }
-    when("Reference") {
+    elsif ($_ eq "Reference") {
       return Grammar::Formal::Reference->new(
         ref => $p->{name},
       );
     }
-    when("Literal") {
+    elsif ($_ eq "Literal") {
       return Grammar::Formal::AsciiInsensitiveString->new(
         value => $p->{value},
       );
     }
-    when("ProseValue") {
+    elsif ($_ eq "ProseValue") {
       return Grammar::Formal::ProseValue->new(
         value => $p->{value},
       );
     }
-    when("String") {
+    elsif ($_ eq "String") {
       my @items;
       for ($p->{type}) {
-        when("decimal") {
+        if ($_ eq "decimal") {
           @items = map { $_ } @{ $p->{value} };
         }
-        when("hex") {
+        elsif ($_ eq "hex") {
           @items = map { hex $_ } @{ $p->{value} };
         }
-        default {
+        else {
           ...
         }
       }
@@ -339,14 +339,14 @@ sub _abnf2g {
 
       return $group;
     }
-    when("Range") {
+    elsif ($_ eq "Range") {
       return Grammar::Formal::Range->new(
         min => hex $p->{min},
         max => hex $p->{max},
       ) if $p->{type} eq 'hex';
       die;
     }
-    default {
+    else {
       ...
     }
   }

@@ -5,7 +5,7 @@ use warnings;
 use Parse::RecDescent;
 use List::Util qw//;
 
-our $VERSION = '0.22';
+our $VERSION = '0.24';
 our $Grammar = q{
 
   {
@@ -288,11 +288,10 @@ sub _to_jet {
         }
       }
 
-      # TODO: min/max in range -> first/last
       my @values = map {
         ["range", {
-          min => $_,
-          max => $_,
+          first => $_,
+          last => $_,
         }, [] ]
       } @items;
 
@@ -302,13 +301,13 @@ sub _to_jet {
     }
     elsif ($_ eq "Range") {
       return ["range", {
-        min => hex $p->{min},
-        max => hex $p->{max},
+        first => hex $p->{min},
+        last => hex $p->{max},
       }, []] if $p->{type} eq 'hex';
 
       return ["range", {
-        min => $p->{min},
-        max => $p->{max},
+        first => $p->{min},
+        last => $p->{max},
       }, []] if $p->{type} eq 'decimal';
 
       ...
@@ -318,27 +317,27 @@ sub _to_jet {
   ...
 }
 
+our %arity = (
+  'grammar'                => [ undef, undef ],
+  'rule'                   => [ 1, 'group' ],
+  'repetition'             => [ 1, 'group' ],
+  'group'                  => [ 2, 'group' ],
+  'exclusion'              => [ 2, 'group' ],
+  'repetition'             => [ 2, 'group' ],
+  'rule'                   => [ 2, 'group' ],
+  'choice'                 => [ 2, 'choice' ],
+  'conjunction'            => [ 2, 'conjunction' ],
+  'orderedChoice'          => [ 2, 'orderedChoice' ],
+  'orderedConjunction'     => [ 2, 'orderedConjunction' ],
+  'ref'                    => [ 0, undef ],
+  'range'                  => [ 0, undef ],
+  'asciiInsensitiveString' => [ 0, undef ],
+);
+
 sub _make_jet_binary {
   my ($node) = @_;
 
   my @todo = ($node);
-
-  my %arity = (
-    'grammar'                => [ undef, undef ],
-    'rule'                   => [ 1, 'group' ],
-    'repetition'             => [ 1, 'group' ],
-    'group'                  => [ 2, 'group' ],
-    'exclusion'              => [ 2, 'group' ],
-    'repetition'             => [ 2, 'group' ],
-    'rule'                   => [ 2, 'group' ],
-    'choice'                 => [ 2, 'choice' ],
-    'conjunction'            => [ 2, 'conjunction' ],
-    'orderedChoice'          => [ 2, 'orderedChoice' ],
-    'orderedConjunction'     => [ 2, 'orderedConjunction' ],
-    'ref'                    => [ 0, undef ],
-    'range'                  => [ 0, undef ],
-    'asciiInsensitiveString' => [ 0, undef ],
-  );
 
   while (my $current = pop @todo) {
     
@@ -365,6 +364,16 @@ sub _make_jet_binary {
   return $node;
 }
 
+sub parse_to_binary_jet {
+  my ($self, $string, %options) = @_;
+
+  my $g = $self->parse_to_jet($self, $string, %options);
+
+  _make_jet_binary($g);
+
+  return $g;
+}
+
 sub parse_to_jet {
   my ($self, $string, %options) = @_;
 
@@ -382,7 +391,7 @@ sub parse_to_jet {
     ]
   ];
 
-  _make_jet_binary($g);
+#  _make_jet_binary($g);
 
   return $g;
 }
@@ -682,6 +691,10 @@ pass C<core> as option and the method will do it for you.
 =item parse_to_jet($string, %options)
 
 As before, but the result is encoded as simple JSON-Encoding for Trees.
+
+=item parse_to_binary_jet($string, %options)
+
+As before, but nodes other than C<grammar> nodes have at most two children.
 
 =back
 

@@ -5,7 +5,7 @@ use warnings;
 use Parse::RecDescent;
 use List::Util qw//;
 
-our $VERSION = '0.26';
+our $VERSION = '0.28';
 our $Grammar = q{
 
   {
@@ -254,7 +254,9 @@ sub _to_jet {
     }
     elsif ($_ eq "Rule") {
       my @values = map { _to_jet($_) } $p->{value};
-      ... if exists $p->{combine};
+      if (exists $p->{combine}) {
+        ...
+      }
       return ["rule", {
         name => $p->{name},
       }, \@values];
@@ -353,7 +355,9 @@ sub _make_jet_binary {
         [$lhs, $rhs]
       ];
       
-      ... unless defined $new->[0];
+      if (not defined $new->[0]) {
+        ...
+      }
 
       push @{ $current->[2] }, $new;
     }

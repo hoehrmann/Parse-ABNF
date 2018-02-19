@@ -5,7 +5,7 @@ use warnings;
 use Parse::RecDescent;
 use List::Util qw//;
 
-our $VERSION = '0.24';
+our $VERSION = '0.26';
 our $Grammar = q{
 
   {
@@ -367,7 +367,7 @@ sub _make_jet_binary {
 sub parse_to_binary_jet {
   my ($self, $string, %options) = @_;
 
-  my $g = $self->parse_to_jet($self, $string, %options);
+  my $g = $self->parse_to_jet($string, %options);
 
   _make_jet_binary($g);
 

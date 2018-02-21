@@ -1,5 +1,8 @@
 Revision history for Perl extension Parse::ABNF.
 
+0.30
+  - removed binary JET functions
+
 0.26
   - fix https://rt.cpan.org/Ticket/Display.html?id=124466
 

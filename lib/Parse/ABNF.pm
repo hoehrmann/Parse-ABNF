@@ -5,7 +5,7 @@ use warnings;
 use Parse::RecDescent;
 use List::Util qw//;
 
-our $VERSION = '0.28';
+our $VERSION = '0.30';
 our $Grammar = q{
 
   {
@@ -317,65 +317,6 @@ sub _to_jet {
   }
 
   ...
-}
-
-our %arity = (
-  'grammar'                => [ undef, undef ],
-  'rule'                   => [ 1, 'group' ],
-  'repetition'             => [ 1, 'group' ],
-  'group'                  => [ 2, 'group' ],
-  'exclusion'              => [ 2, 'group' ],
-  'repetition'             => [ 2, 'group' ],
-  'rule'                   => [ 2, 'group' ],
-  'choice'                 => [ 2, 'choice' ],
-  'conjunction'            => [ 2, 'conjunction' ],
-  'orderedChoice'          => [ 2, 'orderedChoice' ],
-  'orderedConjunction'     => [ 2, 'orderedConjunction' ],
-  'ref'                    => [ 0, undef ],
-  'range'                  => [ 0, undef ],
-  'asciiInsensitiveString' => [ 0, undef ],
-);
-
-sub _make_jet_binary {
-  my ($node) = @_;
-
-  my @todo = ($node);
-
-  while (my $current = pop @todo) {
-    
-    my $max = $arity{ $current->[0] }->[0];
-
-    while ( defined $max and $max < @{ $current->[2] } ) {
-
-      my $rhs = pop @{ $current->[2] };
-      my $lhs = pop @{ $current->[2] };
-      my $new = [
-        $arity{ $current->[0] }[1],
-        {},
-        [$lhs, $rhs]
-      ];
-      
-      if (not defined $new->[0]) {
-        ...
-      }
-
-      push @{ $current->[2] }, $new;
-    }
-
-    push @todo, @{ $current->[2] };
-  }
-
-  return $node;
-}
-
-sub parse_to_binary_jet {
-  my ($self, $string, %options) = @_;
-
-  my $g = $self->parse_to_jet($string, %options);
-
-  _make_jet_binary($g);
-
-  return $g;
 }
 
 sub parse_to_jet {
@@ -695,10 +636,6 @@ pass C<core> as option and the method will do it for you.
 =item parse_to_jet($string, %options)
 
 As before, but the result is encoded as simple JSON-Encoding for Trees.
-
-=item parse_to_binary_jet($string, %options)
-
-As before, but nodes other than C<grammar> nodes have at most two children.
 
 =back
 
